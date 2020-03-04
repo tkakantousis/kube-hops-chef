@@ -36,7 +36,25 @@ end
 
 case node['platform_family']
 when 'rhel'
-  package 'docker'
+  #package 'docker'
+  bash "install_latest_docker" do
+    user 'root'
+    group 'root'
+    cwd Chef::Config['file_cache_path']
+    code <<-EOH
+        ##Uninstall all old docker engines :
+        yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
+        
+        ##Add the required packages 
+        sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+      
+        ##Save repo to /etc/yum.repos.d/docker-ce.repo
+        sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      
+        #Choose the latest docker CE version from the repo added in the previous step 
+        yum install -y docker-ce docker-ce-cli containerd.io
+    EOH
+  end
 when 'ubuntu'
   package 'docker.io'
 end
